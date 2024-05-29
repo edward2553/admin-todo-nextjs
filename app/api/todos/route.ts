@@ -44,3 +44,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: zodErr }, { status: 400 });
   }
 }
+
+export const DELETE = async (request: Request) => {
+  try {
+    const todos = await prisma.todos.deleteMany({ where: { complete: true } });
+
+    return NextResponse.json(todos);
+  } catch (error) {
+    return NextResponse.json(error);
+  }
+};

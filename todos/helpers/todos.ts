@@ -26,8 +26,6 @@ export const updateTodo = async( id: string, complete: boolean ):Promise<todos> 
       'Content-Type': 'application/json'
     }
   }).then( res => res.json() );
-  
-  console.log({todo});
 
   return todo;
 }

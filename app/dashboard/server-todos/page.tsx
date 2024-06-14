@@ -14,9 +14,7 @@ const ServerTodosPage = async () => {
   const todos = await prisma.todos.findMany({
     orderBy: { description: 'asc' },
   });
-
-  console.log('Construido')
-
+  
   return (
     <div>
       <span className="text-3xl mb-10">Server actions</span>

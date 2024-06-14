@@ -1,0 +1,1 @@
+export type TCartFromCookie = { [id: string]: number }

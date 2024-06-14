@@ -6,6 +6,8 @@ const config: Config = {
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
     "./todos/**/*.{js,ts,jsx,tsx,mdx}",
+    "./products/**/*.{js,ts,jsx,tsx,mdx}",
+    "./shopping-cart/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
     extend: {

@@ -3,6 +3,7 @@ import { NextResponse, NextRequest } from 'next/server';
 import { todoSchemaPUT } from '../../schemas/zod.schemas';
 import { handleError } from '../../utils/errorHandler';
 import { ZodErrorResponse } from '../../interfaces/zod';
+import { getUserSessionServer } from '@/auth/actions/auth-actions';
 
 interface Segments {
   params: {
@@ -10,10 +11,21 @@ interface Segments {
   };
 }
 
+const getTodo = async (todoID: string) => {
+  const user = await getUserSessionServer();
+
+  const todo = await prisma.todos.findFirst({
+    where: { id: todoID, userId: user?.id ?? '' },
+  });
+
+  if (!todo) return null;
+
+  return todo;
+};
+
 export async function GET(request: Request, { params }: Segments) {
   const todoID = params.id;
-
-  const todo = await prisma.todos.findFirst({ where: { id: todoID } });
+  const todo = await getTodo(todoID);
 
   if (!todo)
     return NextResponse.json(
@@ -28,8 +40,9 @@ export async function PUT(request: Request, { params }: Segments) {
   try {
     const { id } = params;
     const body = await request.json();
+    const user = await getUserSessionServer();
 
-    const todo = await prisma.todos.findFirst({ where: { id } });
+    const todo = await getTodo(id);
 
     if (!todo) {
       return NextResponse.json(
@@ -43,7 +56,7 @@ export async function PUT(request: Request, { params }: Segments) {
     const { complete, description } = body;
 
     const updatedTodo = await prisma.todos.update({
-      where: { id },
+      where: { id, userId: user?.id ?? '' },
       data: { complete, description },
     });
 

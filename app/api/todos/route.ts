@@ -3,11 +3,13 @@ import { NextResponse } from 'next/server';
 import { ZodErrorResponse } from '../interfaces/zod';
 import { todoSchemaPOST } from '../schemas/zod.schemas';
 import { handleError } from '../utils/errorHandler';
+import { getUserSessionServer } from '@/auth/actions/auth-actions';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const take = Number(searchParams.get('take') ?? '10');
   const skip = Number(searchParams.get('skip') ?? '0');
+  const user = await getUserSessionServer();
 
   if (isNaN(take) || take < 0) {
     return NextResponse.json(
@@ -26,6 +28,7 @@ export async function GET(request: Request) {
   const todos = await prisma.todos.findMany({
     take,
     skip,
+    where: { userId: user?.id ?? '' },
   });
 
   return NextResponse.json({ message: 'Todos', todos });
@@ -33,10 +36,20 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const user = await getUserSessionServer();
+
+    if (!user)
+      return NextResponse.json(
+        { error: 'No user in session, please login' },
+        { status: 401 }
+      );
+
     const body = await request.json();
 
     const validatedTodo = todoSchemaPOST.parse(body);
-    const todo = await prisma.todos.create({ data: validatedTodo });
+    const todo = await prisma.todos.create({
+      data: { ...validatedTodo, userId: user?.id ?? '' },
+    });
 
     return NextResponse.json(todo);
   } catch (error) {
@@ -47,7 +60,11 @@ export async function POST(request: Request) {
 
 export const DELETE = async (request: Request) => {
   try {
-    const todos = await prisma.todos.deleteMany({ where: { complete: true } });
+    const user = await getUserSessionServer();
+
+    const todos = await prisma.todos.deleteMany({
+      where: { complete: true, userId: user?.id ?? '' },
+    });
 
     return NextResponse.json(todos);
   } catch (error) {
